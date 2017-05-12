@@ -1,0 +1,270 @@
+#
+# igmlib, 16 Apr 1996, by Tim Doyle <tdoyle@doit.com>
+#
+#############################################################################
+# - Change Log -
+# Version 2.1  Created this file and moved routines here from other IGM
+#                modules
+#              Some modules were changed to assist in globalization
+# Version 2.2  Added IGMConvert2
+#              Added return to conversion routines
+#              Added IGMLog
+# Version 2.2a Location variables modified - HM
+#              IGMLog now uses IGMHeader
+#              IGMHeader now includes color variables - BB
+#              Background image will not be used if variable is null
+# Version 2.3  Background compare was not string based
+#              Fixed param bug confusing @_ with $_
+#              IGMConvert2 now properly converts y umlauts
+# 15 Sep 1997 Updated LoadVars to handle GET or POST
+#############################################################################
+
+
+sub IGMConvert {
+# ( $_ ) = @_;
+  ( $var )=@_;
+  study $var;
+  ($var =~ s/&/&amp;/go) && study $var;
+  $var =~ s/</&lt;/go;
+  $var =~ s/"/&quot;/go;
+  $var =~ s/>/&gt;/go;
+  $var =~ s/Ñ/&auml;/go;
+  $var =~ s/î/&ouml;/go;
+  $var =~ s/Å/&uuml;/go;
+  $var =~ s/ò/&yuml;/go;
+  $var =~ s/·/&szlig;/go;
+  $var =~ s/é/&Auml;/go;
+  $var =~ s/ö/&Uuml;/go;
+  $var =~ s/Ç/&eacute;/go;
+  $var =~ s/ä/&egrave;/go;
+  $var =~ s/£/&uacute;/go;
+  $var =~ s/á/&ccedil;/go;
+
+ #Remove TMG style index entries from memo fields
+  $var =~ s/ÆÆ.*ØØ//go;
+  $var =~ s/ÆÆ.*//go;
+  $var =~ s/.*ØØ//go;
+
+ #Remove TMG style comments from memo fields
+  $var =~ s/{.*}//go;
+  $var =~ s/{.*//go;
+  $var =~ s/.*}//go;
+#
+# Remove @@ from GED file
+#
+  $var=~s/@@/@/g;
+  $var;
+ 
+}
+
+sub IGMConvert2 {
+# ( $_ ) = @_;
+  ($var)=@_;
+  study $var;
+  $var=~s/&Auml;/Ae/go;
+  $var=~s/&Uuml;/Ue/go;
+  $var=~s/&auml;/ae/go;
+  $var=~s/&ouml;/oe/go;
+  $var=~s/&uuml;/ue/go;
+  $var=~s/&yuml;/y/go;
+  $var=~s/&szlig;/ss/go;
+  $var=~s/&eacute;/e/go;
+  $var=~s/&egrave;/e/go;
+  $var=~s/&ccedil;/c/go;
+  $var=~s/&uacute;/u/go;
+  $var=~s/^(\w+)/\L\u$1\E/;
+# return $_;
+#  return $var;
+  $var;
+}
+
+sub IGMDie {
+  ($text) = @_;
+  print "Error: $text\n</BODY>\n</HTML>\n";
+  die $text;
+}
+
+sub IGMEmail {
+  if (!($emailname)) {
+    open(EMAIL,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.dat");
+    $_=<EMAIL>;
+    ($emailname)=(/^(.*)$/);
+    $_=<EMAIL>;
+    ($emailaddr)=(/^(.*)$/);
+    $_=<EMAIL>;
+    ($NewTitle)=(/^(.*)$/);
+    $_=<EMAIL>;
+    ($LocalHomePage)=(/^(.*)$/);
+    close(EMAIL);
+  }
+#  $NewTitle=$DB unless ($NewTitle);
+  $NewTitle = "Groat Family";
+  $LocalHomePage=$HomePage unless ($LocalHomePage);
+  
+
+
+}
+
+sub IGMEnd {
+  &IGMEmail;
+  print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A>\n";
+  print "<HR>Created by $Program Version $Version ($HowTo)<BR>\n";
+  print "Copyright 1996 &copy; ";
+  print "<A HREF=\"http://www.doit.com/tdoyle/\">Tim Doyle</A><BR>\n";
+  print "Extra modifications made by Michael M. Groat";
+  print "</BODY>\n</HTML>\n";
+}
+
+sub IGMRKW {
+  &IGMEmail;
+  print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A>\n";
+  print "<HR>Created by $Program Version $Version ($HowTo)<BR>\n";
+  print "Copyright 1996 &copy; ";
+  print "<A HREF=\"http://edge.net/~gumby/index.html\">Randy Winch</A><BR>\n";
+  print "Extra modifications made by Michael M. Groat";
+  print "</BODY>\n</HTML>\n";
+}
+
+sub IGMGetKey {
+  $key = $rest;
+  chop $key;
+  $key =~ s/@//g;
+  $key =~ s/\s//g;
+}
+
+sub IGMGetLine {
+#  print "Testsss;
+  $_=&IGMConvert($_);
+#print "Test3";
+  ($lvl,$tag,$rest)=/^(\d+)\s+(\S+) ?(.*)$/o;
+  $LogName=$rest;
+}
+
+sub IGMHTMLHeader {
+  ($Title)=@_;
+  $IGMEmail;
+  print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+  print "</HEAD>\n<BODY ";
+  print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
+  print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
+  print "<CENTER><H2>Michael M. Groat's Genealogical Database</H2></CENTER>\n";
+  print "<CENTER><B>Entries:</B> 13347 &nbsp;&nbsp;<B>Updated:</B> November 26, 2007</CENTER>";
+  print "<CENTER><B>Contact:</B> <A href=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A> &nbsp;&nbsp; <B>Home Page:</B> <A href=\"http://www.cs.unm.edu/~mgroat\">Michael M. Groat's CS Homepage</A></CENTER>";
+  print "<CENTER><H3>$Title</H3></CENTER><HR>\n";
+}
+
+sub IGMHeader {
+  ($Title)=@_;
+  &IGMEmail;
+  print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+  print "</HEAD>\n<BODY ";
+  print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
+  print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
+  print "<CENTER><H2>Michael M. Groat's Genealogical Database</H2></CENTER>\n";
+  print "<CENTER><B>Entries:</B> 13347 &nbsp;&nbsp;<B>Updated:</B> November 26, 2007</CENTER>";
+  print "<CENTER><B>Contact:</B> <A href=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A> &nbsp;&nbsp <B>Home Page:</B> <A href=\"http://www.cs.unm.edu/~mgroat\">Michael M. Groat's CS Homepage</A></CENTER>";
+  print "<CENTER><H3>$Title</H3></CENTER><HR>\n";
+}
+
+sub IGMLog {
+  ( $text )=@_;
+  if ($text !~ /Googlebot|accelobot|msnbot/){
+     $Updated=&wtime(time);
+     $lf="/nfs/notrust/cgi-bin/mgroat/igmlog.html";
+     open(LOG,"+< $lf") || &IGMDie("Error opening log file");
+     flock(LOG,2);
+     @stuff=<LOG>;
+     splice(@stuff,12,1) if ($#stuff>1000);
+     push(stuff,"print \"$Updated $text<br>\";\n");
+     seek(LOG,0,0);
+     print LOG @stuff;
+     $len=tell;
+     truncate(LOG,$len);
+     flock(LOG,8);
+     close(LOG);
+#
+# Update total count of accesses
+#
+     open(LOG,"+< /nfs/notrust/cgi-bin/mgroat/GroatFamily.cnt") || &IGMDie("Error opening access counter");
+     flock(LOG,2);
+     $Count=<LOG>;
+     $Count++;
+     seek(LOG,0,0);
+     print LOG "$Count";
+     flock(LOG,8);
+     close(LOG);
+  }
+
+}
+
+sub HTMLStart {
+  print "Content-type: text/html\n\n";
+}
+
+sub LoadVars {
+  if ($ENV{'REQUEST_METHOD'} eq 'POST') {
+    read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
+  } else {
+    $buffer=$ENV{'QUERY_STRING'};
+  }
+
+  @pairs = split(/&/, $buffer);
+
+  foreach $pair (@pairs) {
+    ($name,$value)=split(/=/,$pair);
+    $value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C",hex($1))/eg;
+    $FORM{$name} = $value;
+  }
+}
+
+sub wtime {
+  local($time) = @_;
+  local($[) = 0;
+  local($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst);
+  local(@DoW) = ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+  local(@MoY) =
+    ('Jan','Feb','Mar','Apr','May','Jun', 'Jul','Aug','Sep','Oct','Nov','Dec');
+  ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
+    = localtime($time);
+
+  $year += ($year < 70) ? 2000 : 1900;
+  sprintf("%s, %02d %s %4d %02d:%02d:%02d",
+    $DoW[$wday], $mday, $MoY[$mon], $year, $hour, $min, $sec);
+}
+
+sub wtime2 {
+  local($time) = @_;
+  local($[) = 0;
+  local($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst);
+  ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime($time);
+  $mon =+ 1;
+  sprintf("%02d%02d%02d", $year, $mon, $mday);
+}
+
+# ===========================================================================
+# escape(): Return the passed string after replacing all characters matching
+#           the passed pattern with their %XX hex escape chars.  Note that
+#           the caller must be sure not to escape reserved URL characters
+#           (e.g. / in pathnames, ':' between address and port, etc.) and thus
+#           this routine can only be applied to each URL part separately. E.g.
+#
+#           $escname = &escape($name,'[\x00-\x20"#%/;<>?\x7F-\xFF]');
+#
+sub escape
+{
+    local($str) = @_;
+         
+    $str =~ s/([\x00-\x20"&#%\/;<>?\x7F-\xFF])/sprintf("%%%02lx",unpack('C',$1))/ge;
+    return($str);
+}
+#This is needed to tell PERL that all is well
+sub counter
+{
+    open(DAT,"GroatFamily.cnt") || die "Problem opening counter file: $!";
+    my $count = <DAT>;
+    print "<hr><CENTER>You are Visitor Number <h2>$count</h2> since Novermber 30, 2007 </CENTER>";
+}
+
+
+1;

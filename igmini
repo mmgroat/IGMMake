@@ -1,0 +1,146 @@
+#
+# igmini, 16 Apr 1996, by Tim Doyle <tdoyle@doit.com>
+#    testing#
+#############################################################################
+# - Change Log -
+# Version 2.1  Created this file and moved variable settings here from
+#                other IGM modules
+# Version 2.2  No changes
+# Version 2.2a Location variables modified for Alias type setup
+#              Website now includes http://
+#              WebRoot merged into LocIGMDir
+#              WebDir replaced by WebIGMDir & LocIGMDir
+#              CGIDir replaced by WebCGIDir & LocCGIDir
+#              Alias variable removed
+#              Added variables for HTML colors - BB
+# Version 2.3  No changes
+#
+#############################################################################
+#
+# The following variables need to be set for your system
+#
+# Notes: To rename the scripts (i.e. to add an extension like .pl or .cgi)
+#        rename the actual scripts and change the variables below.
+#
+#        To enable to scripts to run in an aliased environment (~bbonner),
+#        set WebIGMDir & WebCGIDir appropriately.
+#
+#############################################################################
+#
+# Uncomment the following line for best performance. Not compatable with all systems.
+  use DB_File;
+
+# These are as seen from the web
+
+  #WebSite     = The name of your system
+  $WebSite     = 'http://www.cs.unm.edu/~mgroat';
+
+  #WebIGMDir   = The parent directory off of which all IGM databases exist
+  $WebIGMDir   = 'genealogy';
+
+  #WebCGIDir   = Your CGI directory
+  $WebCGIDir   = 'http://cgibin.cs.unm.edu/mgroat-bin';
+
+# These are as seen from your local system
+
+  #LocIGMDir   = The parent directory off of which all IGM databases exist
+  $LocIGMDir   = '/nfs/student/m/mgroat/public_html/genealogy';
+
+  #LocCGIDir   = Your CGI directory
+  $LocCGIDir   = '/nfs/notrust/cgi-bin/mgroat';
+
+# Names of scripts
+
+  #GetScript   = The name of the 'get' script to run
+  $GetScript   = 'igmget.cgi';
+
+  #FindScript  = The name of the 'search' script to run
+  $FindScript  = 'igmfind.cgi';
+
+  #LinkScript  = The name of the 'link' script to run
+  $LinkScript  = 'igmlink.cgi';
+
+  #PedScript   = The name of the 'pedigree' script to run
+  $PedScript   = 'igmped.cgi';
+
+  #DescScript  = The name of the 'Descendancy' script to run
+  $DescScript  = 'igmdesc.cgi';
+
+  #SrchScript  = The name of the 'Fast Search' script to run
+  $SrchScript  = 'igmsrch.cgi';
+
+  #GedScript   = The name of the 'GEDCOM Extraction' script to run
+  $GedScript   = 'igmged.cgi';
+
+# Background & Color variables
+
+  #Back        = Background image (to disable, set it to "")
+  $Back        = 'marb18.jpg';
+
+  #BGColor     = The background color
+  $BGColor     = '#BFBFBD';
+
+  #Text        = The text color
+  $Text        = '#000000';
+
+  #Link        = The link color
+  $Link        = '#0000EE';
+
+  #VLink       = The visited link color
+  $VLink       = '#551A8B';
+
+# Miscellaneous
+
+  #Photo       = The name of the 'photo available' indicator
+  $Photo       = 'photo.gif';
+
+  #MaxInIndex  = Maximum number of people in each subindex file
+  $MaxInIndex  = 250;
+
+  #UseDBM      = yes to use DBM indexing (to disable, set it to "")
+  $UseDBM      = '';
+
+  #UseXrefTags = Use tags instead of seek addresses
+  $UseXrefTags = '';
+
+  #Peddepth    = pedigree depth
+  $Peddepth    = 15;
+
+  #Pedfull     = Include empty pedigree entries (to disable, set it to "")
+  $Pedfull     = '';
+
+  #Descdepth   = Descendency depth
+  $Descdepth   = 200;
+
+  #AllowFind   = yes to allow find script to be executed or '' to suppress
+  $AllowFind   = 'yes';
+
+  #AllowLinks  = yes to allow links or '' to suppress
+  $AllowLinks  = '';
+
+  #AllowGED    = yes to allow GEDCOM extraction or '' to suppress
+  $AllowGED    = 'yes';
+
+  #MaxGED      = maximun number of generation to allow
+  $MaxGED      = 200;
+
+  #InlineSource = yes to print sources inline '' to footnote sources
+  $InlineSource = '';
+
+  #IndexAliases = yes to include Aliases in index files '' to ignore
+  $IndexAliases = '';
+
+  #Provider    = Footnote for the space provider or '' to suppress
+  $Provider    = 'Database access provided by <A HREF="http://www.rootsweb.com">Rootsweb</A>';
+
+  #HowTo       = Link to more info about programs used to generate database
+  $HowTo       = '<A HREF="http://www.rootsweb.com/~gumby/igm.html">Program Information</A>';
+
+  #HomePage    = Link back to your homepage
+  $HomePage    = '<A HREF="http://www.cs.unm.edu/~mgroat">Home Page</A>';
+
+  #PictureDir  = Directory where photos are stores
+  $PictureDir  = 'photos';
+
+#This is needed to tell PERL that all is well
+1;

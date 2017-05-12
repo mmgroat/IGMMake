@@ -1,0 +1,446 @@
+#!/usr/bin/perl
+#
+# igmmake, 16 Apr 1996, by Tim Doyle <tdoyle@doit.com>
+#
+#############################################################################
+# - Change Log -
+# Version 2.0  Handle FTM style suffix fields - SL
+#              Modified format for HTML indexes
+#              Added support for special character ‡ (c cedilla)
+# Version 2.1  Added support for special character £ (u acute)
+#              Remove TMG style comments from names
+#              Added Program & Version variables
+#              Implemented IGM.PL library
+#              Added igm.ini file - SL
+# Version 2.2  Moved Convert subroutine to igm.pl
+#              Renamed igm.ini to igmini
+#              Renamed igm.pl to igmlib
+# Version 2.2a Location variables modified - HM
+#              Added directory for required files - BB
+# Version 2.3  Fixed param bug confusing @_ with $_
+#
+# Still To Do: Need to use BAPT/ILLE if no BIRT & BURI if no DEAT tags
+#              Add places for people
+#              Add option to use GEDCOM @I### instead of seek addresses
+#              GDX STILL has &; special chars in surname, fullname, city
+#############################################################################
+
+# PERL 5 users should uncomment this BEGIN {}
+BEGIN {
+  unshift(@INC,'/nfs/notrust/cgi-bin/mgroat');
+}
+#$| = 1;
+
+$Program='IGMMake';
+$Version='2.3';
+
+require 'igmini';
+require 'igmlib';
+
+print "\n$Program Version $Version\n";
+print "Copyright (c) Tim Doyle <tdoyle\@doit.com>, 1996\n\n";
+print "A component of the Indexed GEDCOM Method of GenWeb authoring.\n\n";
+
+die "Usage: igmmake gedcom1 [gedcom2 [gedcom3] ...]\n" unless @ARGV || !-t;
+
+foreach $DB ( @ARGV ) {
+  print "Processing $DB\n";
+  $GEDCOM = "$LocIGMDir/$DB/$DB.ged";
+  open( GEDCOM, $GEDCOM ) || die "Error opening $GEDCOM.";
+  if ($UseDBM) {
+    unlink "$LocIGMDir/$DB/$DB";
+    unlink "$LocIGMDir/$DB/$DB.pag";
+    unlink "$LocIGMDir/$DB/$DB.dir";
+    dbmopen(%idx,"$LocIGMDir/$DB/$DB",0644);
+  } else {
+    $INDEX = "$LocIGMDir/$DB/$DB.idx";
+    open( INDEX, "> $INDEX" ) || die "Error opening $INDEX.";
+  }
+  $LineCount=0;
+  $Seek=0;
+  $Numb=0;
+  $people=();
+  foreach $key (keys %people) {delete $people{$key};}
+
+  $svtag='';
+  $svSeek=0;
+
+  while ( <GEDCOM> ) {
+    $LineCount++;
+    if ( ! ( $LineCount % 100 ) ) {
+      print "  Creating Pointer Index - Line: $LineCount\r";
+    }
+    if ( ( /^0.*/ ) && ( $LastTag ne '' ) ) {
+      if ($UseDBM) {
+        $idx{$LastTag}=$Pointer;
+      } else {
+        print INDEX "$LastTag $Pointer\n";
+      }
+    }
+
+    if (($tag)=/^0 @(\w+)@.*/) {
+      $LastTag=$tag;
+      $Pointer=$Seek;
+    }
+    if ( ( $Numb ) = /^1 NUMB (.*)/ ) {
+      if ($UseDBM) {
+        $idx{ID$Numb}=$Pointer;
+      } else {
+        print INDEX "ID$Numb $Pointer\n";
+      }
+      $Pointer = "ID$Numb";
+    }
+    $Seek = tell;
+  }
+  if ($UseDBM) {
+    dbmclose(%idx);
+  } else {
+    close(INDEX);
+  }
+  print "  Pointer Index Complete.                    \n";
+  &IGMEmail;
+  print "  Loading Submitter Information.\r";
+  seek( GEDCOM, 0, 0 );
+  $Submitter = '';
+  $flag = 0;
+  while ( <GEDCOM> ) {
+    &GetLine;
+    if ( $lvl==0 ) {
+      if ( $flag==1 ) {last;}
+      if (($tag eq 'SUBM') || ($rest eq 'SUBM')) { $flag=1;}
+    }
+    if ( $flag==1 ) {
+      if ( ( $tag eq "NAME" ) || ( $tag eq "ADDR" ) || ( $tag eq "CONT" ) ) {
+        $Submitter .= "$rest<br>\n";
+      }
+    }
+  }
+  print "  Submitter Information Loaded.              \n";
+  $Submitter.="<A HREF=\"mailto:$emailaddr\">$emailaddr</A>";
+  $Ifile = "$LocIGMDir/$DB/$DB-photo.idx";
+  if ( open( INDEX, $Ifile ) ) {
+    print "  Loading Photo Index.\r";
+    while ( <INDEX> ) {
+      /^(\d+) (\S+)$/;
+      $photo{ $1 }++;
+    }
+    close( INDEX );
+    print "  Photo Index Loaded.                  \n";
+  }
+
+  $GDXfile = "$LocIGMDir/$DB/$DB.gdx";
+  open( GENDEX, "> $GDXfile" );
+  seek( GEDCOM, 0, 0 );
+  $Seek = 0;
+  $flag = 0;
+  $PhotoCount = 0;
+  $NewNameCount = 0;
+  $NameCount = 0;
+  $PersonCount = 0;
+  $PersonCounter = 0;
+  $birthdate = '';
+  $birthplace = '';
+  $deathdate = '';
+  $deathplace = '';
+  while ( <GEDCOM> ) {
+    &GetLine;
+    if ( $lvl == 0 ) {
+      $flag = 0;
+      $birth = 0;
+      $death = 0;
+
+      $Dates = "($birthdate - $deathdate)";
+      for ( $x = 1; $x <=$NewNameCount; $x++ ) {
+        $Name = $newpeople{ $x };
+        $people{ "$Name:$NameCount" } = ( "$CurrentSeek:$Dates $PhotoAvail" );
+        ( $surname, $firstname ) = $Name =~ /(.*), (.*)/;
+        $surname = &IGMConvert2($surname);
+        $firstname = &IGMConvert2($firstname);
+        $birthplace = &IGMConvert2($birthplace);
+        $deathplace = &IGMConvert2($deathplace);
+        ($fullname = "$firstname/$surname/") =~ s/\s\s+/ /g;
+        if ( $CurrentSeek ne '' ) {
+          print GENDEX "$CurrentSeek|$surname|$fullname|$birthdate|$birthplace|$deathdate|$deathplace|\n";
+        }
+      }
+      $NewNameCount = 0;
+      $birthdate = '';
+      $birthplace = '';
+      $deathdate = '';
+      $deathplace = '';
+      $PhotoAvail = '';
+    }
+    if ($lvl==1) {
+      $birth=0;
+      $death=0;
+    }
+    if ($rest eq 'INDI') {
+      $flag=1;
+      if ($UseXrefTags) {
+        ($CurrentSeek)=($tag=~/@(.*)@/);
+      } else {
+        $CurrentSeek=$Seek;
+      }
+      $PersonCount++;
+    }
+
+    if ( ( $tag eq 'BIRT' ) || ( $tag eq 'ILLE' ) ) { $birth = 1; }
+    if ( $tag eq 'DEAT' ) { $death = 1; }
+    if ( $tag eq 'PHOT' ) {
+      $PhotoText = " <IMG SRC=\"/$WebIGMDir/$Photo\" ALT=\"*Photo*\">";
+      $PhotoAvail = $PhotoText;
+      $PhotoCount++;
+    }
+    $nmbr = $rest;
+    $nmbr =~ s/ //;
+    if ( $tag eq 'NUMB' ) {
+      $CurrentSeek = "ID$nmbr";
+      if ( $photo{ $nmbr } > 0 ) {
+        $PhotoText = " <IMG SRC=\"/$WebIGMDir/$Photo\" ALT=\"*Photo*\">";
+        $PhotoAvail = $PhotoText;
+        $PhotoCount = $PhotoCount + $photo{ $nmbr };
+      }
+    }
+    if ( $tag eq 'DATE' ) {
+      $rest =~ s/\b(\w+)/\L\u$1\E/g;
+      $rest =~ s/\bAnd\b/and/g;
+      $rest =~ s/\bAbt\b/about/g;
+      $rest =~ s/\bBef\b/before/g;
+      $rest =~ s/\bBetween\b/between/g;
+      $rest =~ s/\bAft\b/after/g;
+      $rest =~ s/^\s*//;
+      if ( $birth == 1 ) { $birthdate = $rest; }
+      if ( $death == 1 ) { $deathdate = $rest; }
+    }
+
+    if ( $tag eq 'PLAC' ) {
+      $rest =~ s/^\s*//;
+      if ( $birth == 1 ) { $birthplace = $rest; }
+      if ( $death == 1 ) { $deathplace = $rest; }
+    }
+
+    if (($tag eq 'NAME') || ($tag eq 'ALIA')) {
+      $NameCount++;
+      $NewNameCount++;
+      if ( ! ( $NameCount % 10 ) ) {
+        print "  Gathering Names, $NameCount Found.\r";
+      }
+      $rest =~ s|_| |;
+      $rest =~ s|\s*| |;
+      ( $firstname, $lastname, $title ) = $rest =~ m# (.*)/(.*)/,*\s*(.*)#;
+      if ( $tag eq 'NAME' ) { $ol = $lastname; $of = $firstname; }
+      if ( $tag eq 'ALIA' ) {
+        if ( $lastname eq '' ) { $lastname = $ol; }
+        if ( $firstname eq '' ) { $firstname = $of; }
+      }
+      $Name = "$lastname, $firstname $title";
+      $newpeople{ $NewNameCount } = $Name;
+      $flag = 0;
+    }
+    $Seek = tell;
+  }
+  close( GENDEX );
+  print "  Name Gathering Complete.                    \n";
+
+  #Create subindexes
+  print "  Generating HTML indexes.                    \r";
+  $lastsurname = '';
+  $Initial = 1;
+  $First=1;
+  $Last=0;
+  foreach $Name ( sort { &IGMConvert2($a) cmp &IGMConvert2($b) } keys( %people ) ) {
+    ( $Seek, $Dates ) = $people{ $Name } =~ /(\w+):(.*)/;
+    ( $PrintName ) = $Name =~ /(.*):\d+/;
+    if ( ! ( $PersonCounter % $MaxInIndex ) ) {
+      if ( $Initial == 1 ) {
+        $Initial = 0;
+      } else {
+        &EndIndex;
+      }
+      &StartIndex;
+    }
+    ( $surname ) = $PrintName =~ /(.*),.*/;
+    if ( $surname ne $lastsurname ) {
+      print "<A NAME=\"$surname\"></A>\n";
+      $lastsurname = $surname;
+    }
+    print "<LI><A HREF=\"$WebCGIDir/$GetScript/n=$DB?$Seek\">";
+    print "$PrintName</A>$Dates\n";
+    $LastName = $PrintName;
+    $PersonCounter++;
+  }
+  $Last=1;
+  &EndIndex;
+
+  #Create Master Index
+  $file = "$LocIGMDir/$DB/$DB.html";
+  open( INDEX, "> $file" ) || die( "Error opening $file." );
+  select( INDEX );
+  &heading ( 'Master' );
+
+  foreach $IndexNumber ( sort { $a <=> $b } keys( %Range ) ) {
+    $NameRange = $Range{ $IndexNumber };
+    print "<LI><A HREF=\"./$DB$IndexNumber.html\">";
+    print "$NameRange</A>\n";
+  }
+  print "</UL>\n</UL>\n";
+  &IGMEnd;
+  close (INDEX);
+  select(STDOUT);
+
+  #Create Surname Index
+  $file="$LocIGMDir/$DB/$DB-surname.html";
+  open(INDEX,"> $file" ) || die( "Error opening $file." );
+  select(INDEX);
+  &heading('Surname');
+
+  foreach $IndexNumber ( sort { $a <=> $b } keys( %Range ) ) {
+    $file = "$LocIGMDir/$DB/$DB$IndexNumber.html";
+    open(NINDEX,"$file" ) || die "Error opening $file.";
+    while ( <NINDEX> ) {
+      ($Surname)=/^<A NAME=\"(.*)\">/;
+      $Surname="\U$Surname";
+      if (( $Surname ne '' ) && ( $Surname ne $Lastsurname )) {
+        $FirstLetter=substr($Surname,0,1);
+        if (($LastFirstLetter ne '') && ($FirstLetter ne $LastFirstLetter)) {
+          print "<hr>\n";
+        } else {
+          print ", \n" if ($Lastsurname ne '');
+        }
+        print "<A HREF=\"./$DB$IndexNumber.html#$Surname\">$Surname</A>";
+        $Lastsurname=$Surname;
+        $LastFirstLetter=$FirstLetter;
+      }
+    }
+  }
+  print "\n</UL>\n</UL>\n";
+  &IGMEnd;
+  close (INDEX);
+  select(STDOUT);
+
+  #Create Photo Index
+  $file="$LocIGMDir/$DB/$DB-photo.html";
+  open(INDEX,"> $file" ) || die("Error opening $file.");
+  select( INDEX );
+  &heading ('Photo');
+
+  foreach $IndexNumber ( sort { $a <=> $b } keys( %Range ) ) {
+    $file = "$LocIGMDir/$DB/$DB$IndexNumber.html";
+    open( NINDEX, "$file" ) || die "Error opening $file.";
+    while ( <NINDEX> ) {
+      if ( $_ =~ /$Photo/ ) { print "$_"; }
+    }
+  }
+  print "</UL>\n</UL>\n";
+  &IGMEnd;
+  close ( INDEX );
+  select( STDOUT );
+#
+# Create Log File if needed
+#
+  $file = "$LocIGMDir/$DB/igmlog.html";
+  if (!( -e $file ))  {
+    open ( INDEX, "> $file" ) || die ( "Error opening $file." );
+    select( INDEX );
+    &IGMHeader('Access Log');
+    close ( INDEX );
+    select( STDOUT );
+    chmod (0664, $file );
+  }
+#
+# Create access count file if needed
+#
+  $file = "$LocIGMDir/$DB/$DB.cnt";
+  if (!( -e $file ))  {
+    open ( INDEX, "> $file" ) || die ( "Error opening $file." );
+    print INDEX '1';
+    close ( INDEX );
+    chmod (0664, $file );
+  }
+
+  print "  HTML Generation Complete.                    \n";
+}
+
+sub StartIndex {
+  $IndexNumber++;
+  print "  Generating HTML $IndexNumber                \r";
+  $Range{ $IndexNumber } = "$PrintName - ";
+  $file="$LocIGMDir/$DB/$DB$IndexNumber.html";
+  open(INDEX,"> $file") || die "Error opening $file.";
+  select(INDEX);
+  &heading ('');
+}
+
+sub EndIndex {
+  $Range{ $IndexNumber } .= "$LastName";
+  print INDEX "</UL>\n</UL>\n";
+# If not first index, create link to previous page
+  if ($First==0) {
+    print INDEX "<A HREF=\"./$DB",($IndexNumber-1),".html\">Previous Index Page</A><BR>\n";
+  }
+  if ($Last==0) {
+    print INDEX "<A HREF=\"./$DB",($IndexNumber+1),".html\">Next Index Page</A>\n";
+  }
+  &IGMEnd;
+  close ( INDEX );
+  select( STDOUT );
+  $First=0;
+}
+
+sub GetLine {
+  chop;
+  if ( /\r$/ ) { chop; }
+  $_ = &IGMConvert( $_ );
+  ( ( $lvl, $tag, $rest ) = /^(\d)\s+(\S+) ?(.*)$/ );
+}
+
+sub heading {
+  local( $Type ) = @_;         # = Master Photo '' Surname
+  &IGMHeader("$Type Index");
+
+  if ( $Type eq 'Master' ) {
+    print "This database contains $PersonCount people, $NameCount names, ";
+    if ( $PhotoCount != "0" ) {
+      print "$PhotoCount photographs, ";
+    }
+    print "and is derived from a $LineCount line GEDCOM file.\n";
+   #print "GEDCOM file, last updated $Updated.";
+  }
+  print "For further information, contact:\n";
+  print "<BLOCKQUOTE>$Submitter</BLOCKQUOTE>\n";
+
+  print "The $DB genealogical database can be searched several ways:\n<UL>\n";
+
+  if ($Type ne 'Master') {
+    print "<LI><A HREF=\"./$DB.html\">Return to the Master Index</A>\n";
+  }
+
+  print "<LI><A HREF=\"$WebCGIDir/$SrchScript/n=$DB\">Search for a name in the database.</A>";
+  print "<LI><A HREF=\"$WebCGIDir/$FindScript/n=$DB\">Search for a string in the database.</A>";
+  print " Very slow. Use sub-indexes below for surname searches.\n";
+
+  if ( $Type ne 'Surname' ) {
+    print "<LI><A HREF=\"$DB-surname.html\">Search an index of ALL surnames in the $DB database.</A>\n";
+  }
+
+  if ( $Type ne 'Photo') {
+    if ( $PhotoCount > 0 ) {
+      print "<LI><A HREF=\"$DB-photo.html\">Search an index of individuals with photographs in the ";
+      print "$DB database.</A>\n";
+    }
+  }
+
+  print "<LI><A HREF=\"http://cgibin.cs.unm.edu/mgroat-bin/igmlog.html\">Look at the $DB Database Access Log</A>\n";
+
+#  print "<BR><BR>\n";
+
+  if ( $Type eq 'Master') {
+    print "<LI>Search the following sub-indexes:";
+  } elsif ( $Type eq 'Surname' ) {
+    print "<LI>View individuals with the following surnames:";
+  } else {
+    print "<LI>View information for the following individuals:";
+  }
+
+  print "<UL>\n";
+}

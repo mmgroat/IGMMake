@@ -1,0 +1,244 @@
+#!/usr/bin/perl
+#
+# igmlivng, 12 Jan 1997, by Randy Winch <gumby@edge.net>
+#
+#############################################################################
+#
+# This program removes birth and death information for living individuals
+#
+#############################################################################
+#
+# The variable below can be changed to set the last year
+#
+$year=(localtime)[5];
+$year+=($year<70)?2000:1900;
+$cutoff=$year-80;
+print "Year is $year\n";
+
+$message="Living individual, details withheld";
+
+# PERL 5 users should uncomment this BEGIN {}
+BEGIN {
+  unshift(@INC,'/nfs/notrust/cgi-bin/mgroat'); # Should point to the cgi directory
+}
+$Program='IGMLivng';
+$Version='1.0';
+$|=1;
+require 'igmini';
+require 'igmlib';
+require 'getopts.pl';
+
+print "\n$Program Version $Version\n";
+print "Copyright (c) Randy Winch <gumby\@edge.net>, 1997\n\n";
+print "A component of the Indexed GEDCOM Method of GenWeb authoring.\n";
+
+&ErrorExit unless (@ARGV);
+
+#
+# Process command line for options and files
+#
+&Getopts('bc:l:mny');
+if ($opt_c) {
+  if ($opt_c=~/^\d\d\d\d$/) {
+    $cutoff=$opt_c;
+  } elsif ($opt_c=~/^\d+$/) {
+    $cutoff=$year-$opt_c;
+  } else {
+    print "Invalid cutoff date: $opt_c\n";
+    &ErrorExit;
+  }
+}
+#
+# Set message if specified
+#
+$message=$opt_l if (defined($opt_l));
+#
+# If y option is specified then ignore message
+#
+$message='' if ($opt_y || $opt_m);
+print "------------------------------------------------------------------------------\n";
+print "Options in effect\n";
+print "Cutoff=$cutoff\n";
+print "Changing living individuals dates to years\n" if ($opt_y);
+if ($message) {
+  print "Tagging living with \"$message\" ";
+  if ($opt_b) {
+    print "as the birth date\n";
+  } else {
+    print "as a note\n";
+  }
+} else {
+  print "Individuals will not be tagged with message\n";
+}
+print "Retaining notes\n" if ($opt_n);
+print "------------------------------------------------------------------------------\n";
+foreach $DB (@ARGV) {
+  $DB=$1 if ($DB=~/^(.*).ged$/);
+  print "Processing $DB\n";
+  rename("$LocIGMDir/$DB/$DB.ged","$LocIGMDir/$DB/$DB.org");
+  open(GEDCOM,"$LocIGMDir/$DB/$DB.org") || die "Error opening GEDCOM for $DB.";
+#
+# Build list from name, xref id and seek address. Also write index file.
+#
+  @list=();
+  %Living=();
+  $type='';
+  $currseek=0;
+  $LineCount=0;
+  $ignore='y';
+  $gotdata='n';
+  $count=0;
+  $dead='';
+  @families=();
+  while (<GEDCOM>) {
+    ($lvl,$tag,$rest)=/^(\d+)\s+(\S+) ?(.*)$/;
+    $LineCount++;
+    $rest = trim($rest);
+#    print "level is $lvl, tag is $tag, rest is $rest\n";
+
+#
+# Wait for first individual
+#
+    if ($lvl eq '0') {
+      if ($gotdata eq 'y') {
+#
+# Only process those individuals with no death info
+#
+        if ($dead) {
+	  $dead='';
+        } else {
+          ($year)=($birthdate=~/(\d\d\d\d)$/);
+          if (($year) && ($year>$cutoff)) {
+            $NameCount++;
+            $Living{$id}='y';
+            foreach $family (@families) {
+              $Living{$family}='y';
+            }
+          }
+        }
+        $gotdata='n';
+      }
+#
+#      print "Tag is $tag";
+      if ($tag=~/^@(.*)\@$/) {
+        $id=$1;
+#        $rest = trim($rest);
+#        print "xx $rest xx\n";
+        if ($rest eq "INDI") {
+#          print "At here\n";
+          $birthdate='';
+          $gotdata='y';
+          $count++;
+          print "$count\r" unless ($count % 100);
+          next;
+        }
+      }
+      @families=();
+    }
+    if ($tag eq 'DATE') {
+      $birthdate=$rest if ($type eq 'BIRT');
+      next;
+    }
+    if ($tag eq 'DEAT') {
+      $dead='y';
+      next;
+    }
+    if ($tag eq 'FAMS') {
+      push(@families,$1) if ($rest=~/^@(.*)\@$/);
+      next;
+    }
+  } continue {
+    $type=$tag if ($rest eq '');
+  }
+  print "$LineCount line GEDCOM $count people $NameCount Living\nDone scanning ged file\n";
+#
+# Now process with gedcom and output a "fixed" version
+#
+  print "Now building new GEDCOM\n";
+#
+# Tags to keep
+#
+  $keep{'SEX'}='y';
+  $keep{'NAME'}='y';
+  $keep{'FAMS'}='y';
+  $keep{'FAMC'}='y';
+  $keep{'CHIL'}='y';
+  $keep{'HUSB'}='y';
+  $keep{'WIFE'}='y';
+  $keep{'NOTE'}='y' if ($opt_n);
+#
+# Open new file and go for it
+#
+  open(NEWGED,">$LocIGMDir/$DB/$DB.ged");
+  $fixing='';
+  $count=0;
+  $lastrest='';
+  seek(GEDCOM,0,0);
+  while (<GEDCOM>) {
+    print "$count\r" unless ($count % 1000);
+    ($lvl,$tag,$rest)=/^(\d+)\s+(\S+) ?(.*)$/;
+    $rest = trim($rest);
+    if ($lvl eq '0') {
+      if (($fixing) && ($message) && ($lastrest eq 'INDI') && (!$opt_b)) {
+        $count++;
+        print NEWGED "1 NOTE $message\n" unless ($opt_b);
+      }
+      $fixing=$Living{$1} if ($tag=~/^@(.*)\@$/);
+      $lastrest=$rest;
+      $count++;
+      print NEWGED $_;
+      next;
+    }
+    if ($fixing) {
+      if ($opt_y) {
+        if ($tag eq 'DATE') {
+          ($rest)=($rest=~/(\d\d\d\d)$/);
+          $count++;
+          print NEWGED "$lvl $tag $rest\n";
+        } else {
+          $count++;
+          print NEWGED $_;
+        }
+      } elsif ($keep{$tag}) {
+        $count++;
+        print NEWGED $_;
+      } elsif (($tag eq 'BIRT') && ($message) && ($lastrest eq 'INDI') && ($opt_b)) {
+        $count+=2;
+        print NEWGED "1 BIRT\n";
+        print NEWGED "2 DATE $message\n"
+      }
+    } else {
+      $count++;
+      print NEWGED $_;
+    }
+  }
+  close(GEDCOM);
+  close(NEWGED);
+  print "$count lines written\n";
+  print "New GEDCOM built, remember to run IGMMak to rebuild the index files\n";
+}
+#
+# Syntax Error Exit
+#
+sub ErrorExit {
+  print "Usage: igmlivng [options] db [db] ...]\n\n";
+  print "Where db is the database name without the .ged\n\n";
+  print "Options\n";
+  print "-b           place message as birth date\n";
+  print "-c YYYY      sets cutoff year (default: $cutoff)\n";
+  print "-c YY        sets cutoff year to current year - YY\n";
+#  print "-d           deletes living individuals\n";
+  print "-l \"message\" replace \"$message\" with message\n";
+  print "-m           no message. same as -l\"\"\n";
+  print "-n           keep notes\n";
+  print "-y           replaces dates with year only. This overrides -b -l & -n\n";
+  exit;
+}
+
+sub trim($)
+{
+	my $string = shift;
+	$string =~ s/^\s+//;
+	$string =~ s/\s+$//;
+	return $string;
+}
