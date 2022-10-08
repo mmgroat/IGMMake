@@ -15,6 +15,9 @@
 #############################################################################
 # Some systems might need to uncomment the following line
 #$|=1;
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
 sub trim($);
 $starttime=(times)[0];
 $Program='IGMGet (modified by Randy Winch)';
@@ -35,7 +38,7 @@ $focus=$key;
 if ($UseDBM) {
   dbmopen(%idx,"/nfs/notrust/cgi-bin/mgroat/GroatFamily",undef);
 } else {
-  open(INDEX,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.idx") || die "Can't open index";
+  open(INDEX,$LocINDEX) || die "Can't open index $LocGEDInd";
   while (<INDEX>) {
     /^(\S+) (.*)/;
     $idx{$1}=$2;
@@ -47,7 +50,7 @@ $key=$idx{$key} if ($UseXrefTags);
 #
 
 $lastlvl=100;
-open(GEDCOM,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.ged") || die "Can't open GEDCOM";
+open(GEDCOM,$LocGEDCOM) || die "Can't open GEDCOM $LocGEDCOM";
 #
 # Read schema from gedcom file
 #

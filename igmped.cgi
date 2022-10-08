@@ -9,6 +9,9 @@
 #############################################################################
 use Math::BigInt;
 use Config;
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
 #use integer qw(64bit);
 
 $Program = 'IGMPed';
@@ -22,7 +25,7 @@ my $Savename;
 #
 sub trim($);
 $tmp=$ENV{'PATH_INFO'};
-(($temppeddepth)=($tmp=~m#^/n=(.*)#)) || &IGMDie( "PATH_INFO \"$tmp\" not in correct format.");
+(($temppeddepth)=($tmp=~m#/n=(.*)#)) || &IGMDie( "PATH_INFO \"$tmp\" not in correct format.");
 #
 
 if ($temppeddepth eq 'GroatFamily'){
@@ -42,7 +45,7 @@ $focus=$key;
 if ($UseDBM) {
   dbmopen(%idx,"$LocIGMDir/$DB/$DB",undef) || die 'Cannot open dbm file';
 } else {
-  open(INDEX,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.idx") || &IGMDie("Can't open index");
+  open(INDEX,$LocINDEX) || &IGMDie("Can't open index");
   while (<INDEX>) {
     /^(\S+) (.*)/o;
     $idx{$1}=$2;
@@ -50,7 +53,7 @@ if ($UseDBM) {
   close(INDEX);
 }
 $key=$idx{$key} if ($UseXrefTags);
-open(GEDCOM,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.ged") || die "Can't open GEDCOM";
+open(GEDCOM,$LocGEDCOM) || die "Can't open GEDCOM";
 seek(GEDCOM,$key,0);
 $_=<GEDCOM>;
 ($subject)=/^\d+\s+@(\w+)@\s+.*$/;
@@ -69,7 +72,7 @@ $pedigreestring = '';
 
 print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
 
-&Doindividual($subject,0);
+&Doindividual($subject,0,'');
 
 print "<script type=\"text/javascript\" language=\"JAVASCRIPT\"> \n";
 
@@ -172,7 +175,7 @@ $time=(times)[0]-$starttime;
 sub Doindividual {
 
   # local($parities) = Math::BigInt->new();
-  local ($key,$parities)=@_;
+  local ($key,$parities,$marr)=@_;
   local $tempkey = substr $key, 1;
   local $temptempkey = $key;
   local $mylinenumber = 0;
@@ -248,26 +251,26 @@ sub Doindividual {
           $death = trim($death);
           next;
         }
-        #        if ($tag eq 'PLAC') {
-        #          if ($type eq 'BIRT') {
-        #            print "Inside birth $rest";
-        #            if ($birth eq '') {
-        #              $birth="$rest";
-        #            } else {
-        #              $birth.=" $rest";
-        #            }
-        #          }
-        #          if ($type eq 'DEAT') {
-        #            if ($death eq '') {
-        #              $death="$rest";
-        #            } else {
-        #              $death.=" $rest";
-        #            }
-        #          }
-        #          $death = trim($death);
-        #          $birth = trim($birth);
-        #          next;
-        #        }
+		if ($tag eq 'PLAC') {
+		  if ($type eq 'BIRT') {
+			# print "Inside birth $rest";
+			if ($birth eq '') {
+			  $birth="in $rest";
+			} else {
+			  $birth.=" in $rest";
+			}
+		  }
+		  if ($type eq 'DEAT') {
+			if ($death eq '') {
+			  $death="in $rest";
+			} else {
+			  $death.=" in $rest";
+			}
+		  }
+		  $death = trim($death);
+		  $birth = trim($birth);
+		  next;
+		}
         if ($tag eq 'FAMC') {
           ($family)=($rest=~/@(\w+)@/o);
           next;
@@ -304,6 +307,7 @@ sub Doindividual {
        $pedigreestring .=  "-- <button id=\"ButtonID" . $line_num . "\" onclick=\"hidebranches(" . $line_num . ",1)\">-</button> $mytemp <A HREF=$WebCGIDir/$GetScript/n=$DB?$key>$name</A>"; # unless ($name eq '');
     }
     $pedigreestring .=  " b. $birth" if ($birth ne '');
+	$pedigreestring .=  " m. $marr"  if ($marr ne '');
     $pedigreestring .=  " d. $death" if ($death ne '');
     # print "$key";
     if (@appeared_or_not[$tempkey] == 0){
@@ -342,6 +346,7 @@ sub Dofamily {
   local ($family,$findtag,$parities,$top)=@_;
   # print "paritiesfam is $parities";
   $next='';
+  $marriage = '';
   local ($key)='';
   $key=$idx{$family};
   local $ancestor_line = 0;
@@ -350,16 +355,42 @@ sub Dofamily {
   while (<GEDCOM>) {
     &IGMGetLine;
     last if ($lvl eq '0');
+	if ($lvl eq '1'){ $type = $tag;}
     if ($tag eq $findtag) {
       ($next)=($rest=~/@(\w+)@/o);
-      unless($Pedfull){
-         $ancestor_line = &Doindividual($next,$parities);
-      }
-      last;
+      #unless($Pedfull){
+      #   $ancestor_line = &Doindividual($next,$parities);
+      #}
+      #last;
+	  next;
+    }
+	if ($tag eq 'DATE') {
+	  # print "In date $rest $type";
+      $marriage=$rest if ($type eq 'MARR');
+      $marriage = trim($marriage);
+      next;
+    }
+	if ($tag eq 'PLAC') {
+	  if ($type eq 'MARR') {
+		# print "Inside birth $rest";
+	    if ($marriage eq '') {
+	      $marriage="in $rest";
+	    } else {
+	      $marriage.=" in $rest";
+		}
+	  }
+	  $marriage = trim($marriage);
+	  next;
     }
   }
+  if ($findtag ne 'HUSB') {
+     $marriage = '';
+  }
+  if ($next) {
+	$ancestor_line = &Doindividual($next,$parities,$marriage) unless($Pedfull);
+  }
   if ($Pedfull) {
-    $ancestor_line = &Doindividual($next,$parities);
+    $ancestor_line = &Doindividual($next,$parities,$marriage);
   }
   return $ancestor_line;
 }

@@ -33,21 +33,27 @@
 # These are as seen from the web
 
   #WebSite     = The name of your system
-  $WebSite     = 'http://www.cs.unm.edu/~mgroat';
+  $WebSite     = 'http://127.0.0.1';
 
   #WebIGMDir   = The parent directory off of which all IGM databases exist
-  $WebIGMDir   = 'genealogy';
+  $WebIGMDir   = 'Genealogy/genealogy';
 
   #WebCGIDir   = Your CGI directory
-  $WebCGIDir   = 'http://cgibin.cs.unm.edu/mgroat-bin';
+  $WebCGIDir   = 'http://127.0.0.1/Genealogy';
+
+  #LocINDEX   = Your GedCom index file
+  $LocINDEX   = 'C:\inetpub\wwwroot\Genealogy\genealogy\GroatFamily\GroatFamily.idx';
+
+  #LocGEDCOM  = Your GedCom file
+  $LocGEDCOM  = 'C:\inetpub\wwwroot\Genealogy\genealogy\GroatFamily\GroatFamily.ged';
 
 # These are as seen from your local system
 
   #LocIGMDir   = The parent directory off of which all IGM databases exist
-  $LocIGMDir   = '/nfs/student/m/mgroat/public_html/genealogy';
+  $LocIGMDir   = 'C:\inetpub\wwwroot\Genealogy\genealogy';
 
   #LocCGIDir   = Your CGI directory
-  $LocCGIDir   = '/nfs/notrust/cgi-bin/mgroat';
+  $LocCGIDir   = 'C:\inetpub\wwwroot\Genealogy';
 
 # Names of scripts
 

@@ -175,7 +175,7 @@ sub IGMLog {
      flock(LOG,2);
      @stuff=<LOG>;
      splice(@stuff,12,1) if ($#stuff>1000);
-     push(stuff,"print \"$Updated $text<br>\";\n");
+     push(@stuff,"print \"$Updated $text<br>\";\n");
      seek(LOG,0,0);
      print LOG @stuff;
      $len=tell;

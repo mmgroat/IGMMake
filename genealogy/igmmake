@@ -27,15 +27,22 @@
 
 # PERL 5 users should uncomment this BEGIN {}
 BEGIN {
-  unshift(@INC,'/nfs/notrust/cgi-bin/mgroat');
+  unshift(@INC,'C:\inetpub\wwwroot\Genealogy\genealogy');
 }
 #$| = 1;
+
+
+#use Cwd qw( abs_path );
+#use File::Basename qw( dirname );
+#use lib dirname(abs_path($0));
+
 
 $Program='IGMMake';
 $Version='2.3';
 
 require 'igmini';
 require 'igmlib';
+
 
 print "\n$Program Version $Version\n";
 print "Copyright (c) Tim Doyle <tdoyle\@doit.com>, 1996\n\n";
