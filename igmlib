@@ -107,21 +107,21 @@ sub IGMEmail {
 
 sub IGMEnd {
   &IGMEmail;
-  print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat#AT#cs#DOT#unm#DOT#edu\">Michael Groat</A>\n";
+  print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A>\n";
   print "<HR>Created by $Program Version $Version ($HowTo)<BR>\n";
   print "Copyright 1996 &copy; ";
   print "<A HREF=\"http://www.doit.com/tdoyle/\">Tim Doyle</A><BR>\n";
-  print "Extra modifications made by Michael Groat";
+  print "Extra modifications made by Michael M. Groat";
   print "</BODY>\n</HTML>\n";
 }
 
 sub IGMRKW {
   &IGMEmail;
-  print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat#AT#cs#DOT#unm#DOT#edu\">Michael Groat</A>\n";
+  print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A>\n";
   print "<HR>Created by $Program Version $Version ($HowTo)<BR>\n";
   print "Copyright 1996 &copy; ";
   print "<A HREF=\"http://edge.net/~gumby/index.html\">Randy Winch</A><BR>\n";
-  print "Extra modifications made by Michael Groat";
+  print "Extra modifications made by Michael M. Groat";
   print "</BODY>\n</HTML>\n";
 }
 
@@ -148,8 +148,8 @@ sub IGMHTMLHeader {
   print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
   print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
   print "<CENTER><H2>Michael M. Groat's Genealogical Database</H2></CENTER>\n";
-  print "<CENTER><B>Entries:</B> 13347 &nbsp;&nbsp;<B>Updated:</B> March 31, 2013</CENTER>";
-  print "<CENTER><B>Contact:</B> <A href=\"mailto:mgroat#AT#cs#DOT#unm#DOT#edu\">Michael M. Groat</A> &nbsp;&nbsp; <B>Home Page:</B> <A href=\"http://www.cs.unm.edu/~mgroat\">Michael M. Groat's CS Homepage</A></CENTER>";
+  print "<CENTER><B>Entries:</B> 13347 &nbsp;&nbsp;<B>Updated:</B> November 26, 2007</CENTER>";
+  print "<CENTER><B>Contact:</B> <A href=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A> &nbsp;&nbsp; <B>Home Page:</B> <A href=\"http://www.cs.unm.edu/~mgroat\">Michael M. Groat's CS Homepage</A></CENTER>";
   print "<CENTER><H3>$Title</H3></CENTER><HR>\n";
 }
 
@@ -161,42 +161,41 @@ sub IGMHeader {
   print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
   print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
   print "<CENTER><H2>Michael M. Groat's Genealogical Database</H2></CENTER>\n";
-  print "<CENTER><B>Entries:</B> 13347 &nbsp;&nbsp;<B>Updated:</B> March 31, 2013</CENTER>";
-  print "<CENTER><B>Contact:</B> <A href=\"mailto:mgroat#AT#cs#DOT#unm#DOT#edu\">Michael M. Groat</A> &nbsp;&nbsp <B>Home Page:</B> <A href=\"http://www.cs.unm.edu/~mgroat\">Michael M. Groat's CS Homepage</A></CENTER>";
+  print "<CENTER><B>Entries:</B> 13347 &nbsp;&nbsp;<B>Updated:</B> November 26, 2007</CENTER>";
+  print "<CENTER><B>Contact:</B> <A href=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A> &nbsp;&nbsp <B>Home Page:</B> <A href=\"http://www.cs.unm.edu/~mgroat\">Michael M. Groat's CS Homepage</A></CENTER>";
   print "<CENTER><H3>$Title</H3></CENTER><HR>\n";
 }
 
 sub IGMLog {
-#  ( $text )=@_;
-#  if ($text !~ /Googlebot|accelobot|msnbot/){
-#     $Updated=&wtime(time);
-#     $lf="/nfs/notrust/cgi-bin/mgroat/igmlog.html";
-#     open(LOG,"+< $lf") || &IGMDie("Error opening log file");
-#     flock(LOG,2);
-#     @stuff=<LOG>;
-#     splice(@stuff,12,1) if ($#stuff>1000);
-#     push(stuff,"print \"$Updated $text<br>\";\n");
-#     seek(LOG,0,0);
-#     print LOG @stuff;
-#     $len=tell;
-#     truncate(LOG,$len);
-#     flock(LOG,8);
-#     close(LOG);
+  ( $text )=@_;
+  if ($text !~ /Googlebot|accelobot|msnbot/){
+     $Updated=&wtime(time);
+     $lf="/nfs/notrust/cgi-bin/mgroat/igmlog.html";
+     open(LOG,"+< $lf") || &IGMDie("Error opening log file");
+     flock(LOG,2);
+     @stuff=<LOG>;
+     splice(@stuff,12,1) if ($#stuff>1000);
+     push(@stuff,"print \"$Updated $text<br>\";\n");
+     seek(LOG,0,0);
+     print LOG @stuff;
+     $len=tell;
+     truncate(LOG,$len);
+     flock(LOG,8);
+     close(LOG);
 #
 # Update total count of accesses
 #
-#     open(LOG,"+< /nfs/notrust/cgi-bin/mgroat/GroatFamily.cnt") || &IGMDie("Error opening access counter");
-#     flock(LOG,2);
-#     $Count=<LOG>;
-#     $Count++;
-#     seek(LOG,0,0);
-#     print LOG "$Count";
-#     flock(LOG,8);
-#     close(LOG);
- 
-# }
-}
+     open(LOG,"+< /nfs/notrust/cgi-bin/mgroat/GroatFamily.cnt") || &IGMDie("Error opening access counter");
+     flock(LOG,2);
+     $Count=<LOG>;
+     $Count++;
+     seek(LOG,0,0);
+     print LOG "$Count";
+     flock(LOG,8);
+     close(LOG);
+  }
 
+}
 
 sub HTMLStart {
   print "Content-type: text/html\n\n";
@@ -261,13 +260,11 @@ sub escape
 }
 #This is needed to tell PERL that all is well
 sub counter
-{ 
-   return;
+{
+    open(DAT,"GroatFamily.cnt") || die "Problem opening counter file: $!";
+    my $count = <DAT>;
+    print "<hr><CENTER>You are Visitor Number <h2>$count</h2> since Novermber 30, 2007 </CENTER>";
 }
-#    open(DAT,"GroatFamily.cnt") || die "Problem opening counter file: $!";
-#    my $count = <DAT>;
-#    print "<hr><CENTER>You are Visitor Number <h2>$count</h2> since Novermber 30, 2007 </CENTER>";
-#}
 
 
 1;

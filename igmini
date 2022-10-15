@@ -36,21 +36,21 @@
   $WebSite     = 'http://127.0.0.1';
 
   #WebIGMDir   = The parent directory off of which all IGM databases exist
-  $WebIGMDir   = 'Genealogy/genealogy';
+  $WebIGMDir   = 'Genealogy';
 
   #WebCGIDir   = Your CGI directory
   $WebCGIDir   = 'http://127.0.0.1/Genealogy';
 
   #LocINDEX   = Your GedCom index file
-  $LocINDEX   = 'C:\inetpub\wwwroot\Genealogy\genealogy\GroatFamily\GroatFamily.idx';
+  $LocINDEX   = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.idx';
 
   #LocGEDCOM  = Your GedCom file
-  $LocGEDCOM  = 'C:\inetpub\wwwroot\Genealogy\genealogy\GroatFamily\GroatFamily.ged';
+  $LocGEDCOM  = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.ged';
 
 # These are as seen from your local system
 
   #LocIGMDir   = The parent directory off of which all IGM databases exist
-  $LocIGMDir   = 'C:\inetpub\wwwroot\Genealogy\genealogy';
+  $LocIGMDir   = 'C:\inetpub\wwwroot\Genealogy';
 
   #LocCGIDir   = Your CGI directory
   $LocCGIDir   = 'C:\inetpub\wwwroot\Genealogy';

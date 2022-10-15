@@ -163,7 +163,7 @@ if ($AllowGED) {
   print " | <a href=$WebCGIDir/$GedScript?Database=$DB&Subject=$focus&Name=$EncodeName&type=descendants>Extract GEDCOM</B></CENTER></a>\n";
 }
 
-&counter;
+#&counter;
 &IGMRKW;
 dbmclose(%idx) if ($UseDBM);
 $time=(times)[0]-$starttime;
