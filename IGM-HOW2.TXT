@@ -1,0 +1,359 @@
+           INDEXED GEDCOM METHOD (IGM) OF DISPLAYING FAMILY TREES
+
+Concept originally created by Tim Doyle.  Modified and enhanced by 
+Randy Winch <gumby@edge.net>, with additional scripts added.
+
+
+     ********* PRINT THIS FILE.  YOU'LL WANT TO HAVE IT HANDY *********
+
+This file is 5 or 6 pages long, and that may seem like a lot, or make it
+appear as if this is a complicated program, but it isn't.  These
+instructions are very detailed, and should walk you through the process
+step-by-step.  Since so much depends on your server's setup (and every 
+server is different <sigh>), much detail is needed to avoid confusion.
+My goal is to get you up and running on the first try.
+
+
+OVERVIEW
+---------
+     The Indexed Gedcom Method employs several cgi scripts to take an 
+     ordinary gedcom and index it for presentation on the worldwide web.
+     Once the gedcom is indexed, a page for an individual will be created
+     by simply clicking on the name of the individual found in the index.
+     Any and all information about that individual that is included in the
+     gedcom will be displayed on their page, including sources and notes.
+
+     Other exciting features include:
+
+          CGI requires less storage space - a LOT less than static
+          Allows the inclusion and display of Photos
+          Source citation
+          Notes displayed
+          Pedigree charts (you decide the # of generations)
+          Descendant charts ("   "     "  "  "      "     )
+          Handles Aliases (your option)
+          Owner's name and email address on every page
+          NAME search engine built in
+          FREESTYLE TEXT search engine built in (your option)
+          Automatically logs every hit and every download
+          Easy Linking (built-in) between individuals in remote databases
+          Generates custom gedcoms for downloading
+          Creates a file for use with both John Rigdon's and Gene Stark's
+            indexes
+
+BEFORE YOU BEGIN
+----------------
+
+     There a few things that you'll need to know before you can use these
+     scripts.  You should check with your server if you don't know the
+     following:
+
+     1)  Does your server support CGI?  It's necessary in order to run these
+         scripts.
+
+     2)  Do they have a version of PERL installed?  Also necessary.
+
+     3)  What version of PERL is it?  You'll need to know if it's
+         version 5 or better. Type "perl -v" to check.
+
+     4)  Where is PERL located on the server's hard-drive? (What is it's 
+         path? - you'll need to be able to call it.) Type "which perl" to check.
+
+     5)  What is the 'real path' to your home page. (NOT the URL, but the
+         path as seen on the server's hard drive.  Usually something like
+         /home/your_name/public_html)
+
+     6)  Does your server require that you place all cgi scripts in a
+         special directory?  If so, what is it's path?
+
+     7)  Does your server require that cgi scripts have any specific
+         extensions, such as  *.pl   or   *.cgi?  If so, then you might have
+         to do a little bit of editing of the scripts in addition to 
+         renaming the scripts.
+
+     8)  You'll need to create subdirectories to contain your database(s),
+         one to use as a main database directory, and then a subdirectory
+         of that - one for each gedcom.  For example:  if your URL looks
+         like this   http://www.server.com/~your_name/    and your path
+         looks like this:   /home/your_name/public_html,  then you'll need a
+         subdirectory of that such as  /home/your_name/public_html/databases.
+         You don't have to call the new subdirectory 'databases'.  You can
+         give it whatever name you want.  This is the "main database
+         directory" referred to later. (Put a star in the margin to mark
+         this spot.  You'll be referring back to it later.)
+ 
+         The subdirectories off of that (which will hold one gedcom each, 
+         plus its generated files), should have the same name as the gedcom
+         they hold, with the same capitalization, etc.  Ex:  for McGee.ged:   
+         /home/your_name/public_html/databases/McGee  
+
+
+THE IGM SCRIPTS
+---------------
+
+     The following is a list (with brief descriptions) of the scripts
+     necessary to use IGM.  Detailed descriptions are given later.
+     Please check to make sure that you have all of these.
+
+          igmdesc.cgi	creates the descendant charts
+          igmfind.cgi	the FREESTYLE TEXT search engine
+          igmged.cgi	creates the custom gedcoms
+	  igmget.cgi	creates the individual's page when called
+          igmini        the .ini file - very important
+          igmlib        contains all subroutines - very important
+          igmlink.cgi	links common individuals in remote databases
+          igmmak        a quicker version of igmmake.cgi
+          igmmake       creates the whole shebang - this is run from the shell
+          igmped.cgi	creates the pedigree charts
+          igmsrch.cgi	the NAME/PLACE search engine
+
+     In addition to the above 11 files, you'll need 2 additional files which
+     you will supply.  The first, obviously, is the gedcom itself.  The
+     second is a data file, used to put the owner's name and email address
+     on each created page.  Details of this file are given later.
+
+     After running either igmmak.cgi or igmmake.cgi, there will be a set of
+     static (permanent) files created:
+	  
+	  note:  * stands for the name of the gedcom.  For instance, if the
+                 gedcom is called smith.ged, then the files will be
+                 smith.html , smith1.html , smith.cnt , etc.
+
+	  *-surname.html		      the surname page
+	  *.html			      the Master Index page
+	  *1.html (*2.html, *3.html, etc.)    sub-index pages
+	  *.cnt                               keeps track of total 'hits'
+	  *.db                                
+	  *.gdx                               for use with Gene Stark's or 
+                                                 John Rigdon's indexes
+
+
+PREPARING THE SCRIPTS
+---------------------
+
+     ===========
+     IGMDESC.CGI
+     ===========
+	This script is called whenever anyone chooses to display a
+        descendant chart.  The only lines you may need to edit are the
+	following:
+
+	     #!/usr/bin/perl	This is the very first line of any script,
+                                and should list the exact path from "Before
+  				You Begin" Step 4 (above).  Do not remove
+                                the # or the !.
+
+             require 'igmini';  If you renamed the ini file to suit
+                                your server, the name has to be changed
+                                here, too.
+
+             require 'igmlib';  Again, change it here if you've renamed
+                                the file.
+
+     ===========
+     IGMFIND.CGI
+     ===========
+	Does a FREESTYLE TEXT search whenever anyone choses that option from
+        the Master index page, and returns a linked list of all matches.
+        Lines to change:
+ 
+	     The sames lines as for IGMDESC.CGI        
+
+     ==========
+     IGMGED.CGI
+     ==========
+	This script creates the customized gedcoms for downloading.
+
+	Changes to this script are the same as for IGMFIND.CGI
+
+
+     ==========
+     IGMGET.CGI
+     ==========
+	This script does the majority of the work for the web users.  When 
+        an individual is selected for displaying, this is the script that
+        creates that individual's page.  It reads in the gedcom, extracts
+        the information, and displays the page.  Once another individual is
+        selected, or the user leaves the program, the individual's page no
+        longer exists on your server.
+
+	Changes to this script are the same as for IGMDESC.CGI
+
+     ==========
+     IGMINI
+     ==========
+	This file is called by every one of the IGM scripts.  It contains
+        all the main variables and the paths which are used throughout the
+        IGM series.  This is also where optional items are set, such as 
+        whether or not to include Aliases on an individual's page, background
+        colors or graphics, depths of the displayed pedigrees and descendant
+        charts, etc.
+
+	This file will require the most editing, but it's fairly
+        straightforward.  The first section deals with defining your URL
+        and path - on your server.  The script contains my own personal
+        setup.  If it will help any, my online database is located at 
+
+        http://www.rootsweb.com/~gumby/genweb/Winch/Winch.html
+
+        Please compare the above to what you see in the igmini file. It
+ 	may help you to understand this section.
+
+	The next section covers the names of the scripts.  Please make sure
+	that the names here match the actual names and extensions of the
+	scripts.  In other words, if you renamed the scripts for any
+	reason, be sure to change them in this section, too.
+
+	The last two sections of the IGMINI file contain the options that
+	you can set.  They're pretty self-explanatory.
+
+     ==========
+     IGMLIB
+     ==========
+	This file contains all of the subroutines that may be called from 
+	any of the IGM 'modules'.  This is an extremely important file, and
+	fortunately, requires no editing.
+
+     ==========
+     IGMLINK.CGI
+     ==========
+	This script is called when you want to link an individual in your
+	database to another database containing the same individual.
+
+	Changes needed to this script are the same as for IGMFIND.CGI
+
+     ==========
+     IGMMAK
+     ==========
+	Executed from the command line while dialed in to your shell account.
+	This script is responsible for reading in the gedcom and creating
+	all indexes and other static pages.  It is much faster than IGMMAKE.
+	
+	The only line that may need editing is 
+	#!/usr/bin/perl		change this to the path from step #4 of
+				'Before You Begin'.
+
+     ===========
+     IGMMAKE
+     ===========
+	Like IGMMAK, this script is executed from the command line while
+	dialed into your shell account.  Does basically the same thing as 
+	IGMMAK, but is a lengthier process.
+
+	Changes that may be needed:
+	   #!/usr/bin/perl		You should know what to do by now.
+
+	   BEGIN {			Same as for IGMFIND.  Make sure the
+             unshift(@INC,'/path');       path is correct.
+	   }
+
+
+     ==========
+     IGMPED.CGI
+     ==========
+	This script creates the pedigree charts when called.
+
+	Possible changes:
+
+	    #!/usr/bin/perl		same as all the others
+
+	    require "igmini.cgi";	make sure these are the same as the
+	    require "igmlib.cgi";	actual script names.
+
+     ===========
+     IGMSRCH.CGI
+     ===========
+
+	Searches the *.gdx file instead of the entire gedcom for a
+	particular name or surname, and returns a linked list of all matches.
+	Changes to this script would be the sames as for IGMFIND.
+
+     ======
+     *.DAT
+     ======
+	You need to create this file in any text editor (Notepad will be
+        fine).  This file contains only three lines:
+          1] The name of the database owner
+          2] their email address (no '<' or '>', just the address.)
+             Ex:  mine is      durp@one.net
+          3] A title for this database if different from the directory name.
+
+
+STARTING THE PROGRAM
+--------------------
+
+     1)  Using FTP, dial into your server and upload the following scripts
+	 and files to the following directories:
+	 **** VERY IMPORTANT ****  do NOT upload using BIN.  Use ASCII.
+
+	     To your "main database directory"   (star in the margin <g>)
+             Ex: /home/your_name/public_html/genweb
+                  igmmak
+                  igmmake
+
+	     To the "gedcom directory"
+	     Ex: /home/your_name/public_html/databases/McGee
+		  the gedcom
+		  *.dat
+	     **** Note:  now is the time to rename these 2 files if you want
+	                 them to have a capital letter.  Only do this if the
+                         matching directory name has a capital letter also.
+	     
+
+	     To the cgi directory
+		  igmdesc.cgi
+		  igmfind.cgi
+		  igmged.cgi
+		  igmget.cgi
+                  igmini
+                  igmlib
+		  igmlink.cgi
+		  igmped.cgi
+		  igmsrch.cgi
+
+
+     2)  Dial into your shell account using TelNet or any other program you
+         choose.
+             A)  Change to your "main database directory".  Make IGMMAK
+                 executable by typing the following command at the unix
+                 prompt:    chmod u+x igmmak
+
+                 Do the same for IGMMAKE  by entering  
+                 chmod u+x igmmake
+
+	     B)  Change to whatever directory your other .cgi scripts are in
+                 and make them executable by typing the following command
+                 at the UNIX prompt for each of the .cgi files:
+                 chmod a+x igmget.cgi
+                 chmod a+x igmped.cgi
+                 etc.
+
+	     C)  Change back to your "main database directory" and enter the
+		 following at the unix command prompt:
+
+                 igmmak McGee   (or igmmake Carey, etc.)
+
+		 the first part should be the exact name of the 'Make'
+		 script (extension included), followed by a space, then just
+                 the name of the gedcom - with proper capitalization.
+
+		 At this point, all of the static pages will be created -
+		 the Master Index page, all other index pages, the .gdx
+		 file, the .db file, igmlog.html, etc.  This process takes
+		 only a short time, and depends on the size of the gedcom.
+
+     Once this step is complete, you'll be ready to enjoy your handiwork!
+     You can close down FTP if you haven't already, and you can close down
+     TelNet or whatever other program you used.
+
+     Start up your web browser.  Enter the URL of the Main Index Page, which
+     will look something like this:  
+
+   http://domain/~you/main_database_directory/gedcom_name/gedcom_name.html
+
+     THAT SHOULD BE ALL THERE IS TO IT !!!  If you experience any problems,
+     please seek help with your server first.  Most servers have user's
+     group mail lists, and you're bound to find a cgi expert there.  If all
+     else fails, feel free to contact either myself - 
+     Pam Carey Durstock  <durp@one.net>  or the creator of these scripts - 
+     Randy Winch  <gumby@edge.net>.  Best of Luck to you, and ENJOY !!!
