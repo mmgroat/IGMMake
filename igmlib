@@ -157,6 +157,7 @@ sub IGMHeader {
   ($Title)=@_;
   &IGMEmail;
   print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+#  print "<meta charset=\"utf-8\">\n"
   print "</HEAD>\n<BODY ";
   print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
   print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
@@ -170,8 +171,8 @@ sub IGMLog {
   ( $text )=@_;
   if ($text !~ /Googlebot|accelobot|msnbot/){
      $Updated=&wtime(time);
-     $lf="/nfs/notrust/cgi-bin/mgroat/igmlog.html";
-     open(LOG,"+< $lf") || &IGMDie("Error opening log file");
+     $lf='C:\inetpub\wwwroot\Genealogy\GroatFamily\igmlog.html';
+     open(LOG,"+< $lf") || &IGMDie("Error opening log file $lf");
      flock(LOG,2);
      @stuff=<LOG>;
      splice(@stuff,12,1) if ($#stuff>1000);
@@ -198,7 +199,7 @@ sub IGMLog {
 }
 
 sub HTMLStart {
-  print "Content-type: text/html\n\n";
+  print "Content-type: text/html; charset=utf-8\n\n";
 }
 
 sub LoadVars {

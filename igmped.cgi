@@ -12,6 +12,8 @@ use Config;
 use Cwd qw( abs_path );
 use File::Basename qw( dirname );
 use lib dirname(abs_path($0));
+use utf8;
+use Switch;
 #use integer qw(64bit);
 
 $Program = 'IGMPed';
@@ -96,9 +98,21 @@ print "      if (main === 1) {\n";
 print "         if (x != \"+\") { \n";
 print "            document.getElementById(\"ButtonID\" + line_num ).innerHTML = \"+\";\n";
 print "            closeorexpand = 0;\n";
+print "            toggle(\"DivID\" + line_num + \"a\",0);\n";
+print "            toggle(\"DivID\" + line_num + \"b\",1);\n";
+print "            toggle(\"DivID\" + line_num + \"c\",0);\n";
+print "            toggle(\"DivID\" + line_num + \"d\",1);\n";
+print "            toggle(\"DivID\" + line_num + \"e\",0);\n";
+print "            toggle(\"DivID\" + line_num + \"f\",1);\n";
 print "         } else { \n";
 print "            document.getElementById(\"ButtonID\" + line_num ).innerHTML = \"-\";\n";
 print "            closeorexpand = 1;\n";
+print "            toggle(\"DivID\" + line_num + \"a\",1);\n";
+print "            toggle(\"DivID\" + line_num + \"b\",0);\n";
+print "            toggle(\"DivID\" + line_num + \"c\",1);\n";
+print "            toggle(\"DivID\" + line_num + \"d\",0);\n";
+print "            toggle(\"DivID\" + line_num + \"e\",1);\n";
+print "            toggle(\"DivID\" + line_num + \"f\",0);\n";
 print "         }\n";
 print "      }\n";
 print "      var father_line_number = ancestors_line_number[line_num][0];\n";
@@ -124,12 +138,14 @@ print "      }\n";
 print "   }\n";
 print "   function toggle(elementname,onoff) { ";
 print "      var x = document.getElementById(elementname);";
-print "      if (onoff === 0) {";
-print "         x.style.display = 'none';";
-print "      } else { ";
-print "         x.style.display = 'inline'; ";
+print "      if (x !== null) { ";
+print "        if (onoff === 0) { ";
+print "           x.style.display = 'none'; ";
+print "        } else { ";
+print "           x.style.display = 'inline'; ";
+print "        } ";
 print "      } ";
-print "   }";
+print "   } ";
 print "</script>";
 
 print "<style>";
@@ -166,8 +182,8 @@ if ($AllowGED) {
 #&counter;
 &IGMRKW;
 dbmclose(%idx) if ($UseDBM);
-$time=(times)[0]-$starttime;
-&IGMLog("Pedigree $Savename accessed by $ENV{\"REMOTE_ADDR\"} $ENV{\"HTTP_USER_AGENT\"} using $time");
+#$time=(times)[0]-$starttime;
+#&IGMLog("Pedigree $Savename accessed by $ENV{\"REMOTE_ADDR\"} $ENV{\"HTTP_USER_AGENT\"} using $time");
 
 #
 # recursive subroutine to do individual
@@ -211,7 +227,7 @@ sub Doindividual {
           $name=$rest;
           if ($level==0) {
 
-            $pedigreestring .= "<h1>Ancestors of $name</h1><hr>\n";
+            $pedigreestring .= "<h1>   Ancestors of $name</h1><hr>\n";
             $pedigreestring .= "<CENTER><B><A HREF=\"$WebSite/$WebIGMDir/$DB/$DB.html\">Master Index</A>\n";
             $pedigreestring .= " | <A HREF=$WebCGIDir/igmget.cgi/n=$DB?$focus>Individual</A>\n";
             $pedigreestring .= " | <A HREF=$WebCGIDir/$DescScript/n=$DB?$focus>Descendency Chart</A>\n";
@@ -290,7 +306,7 @@ sub Doindividual {
     }
     $ancestors_line_number[$line_num][0] = $father_line_number;
     if ($level==0) {
-       $pedigreestring .=  "<button id=\"ButtonID" . $line_num . "\" onclick=\"hidebranches(" . $line_num . ",1)\">-</button> 1 <A HREF=$WebCGIDir/$GetScript/n=$DB?$key>$name</A>"; #unless ($name eq '');
+       $pedigreestring .=  "&nbsp;<button id=\"ButtonID" . $line_num . "\" onclick=\"hidebranches(" . $line_num . ",1)\">-</button> 1 <A HREF=$WebCGIDir/$GetScript/n=$DB?$key><B>$name</B></A>\n"; #unless ($name eq '');
     } else {
        $pedigreestring .=  '     ';
        # print "paraties is $parities level is $level";
@@ -304,22 +320,93 @@ sub Doindividual {
           $pedigreestring .=  '\\';
        }
        $mytemp = $level + 1;
-       $pedigreestring .=  "-- <button id=\"ButtonID" . $line_num . "\" onclick=\"hidebranches(" . $line_num . ",1)\">-</button> $mytemp <A HREF=$WebCGIDir/$GetScript/n=$DB?$key>$name</A>"; # unless ($name eq '');
+       $pedigreestring .=  "-- <button id=\"ButtonID" . $line_num . "\" onclick=\"hidebranches(" . $line_num . ",1)\">-</button> $mytemp <A HREF=$WebCGIDir/$GetScript/n=$DB?$key><B>$name</B></A>"; # unless ($name eq '');
+       if (@appeared_or_not[$tempkey] == 0){
+          $pedigreestring .= "<A NAME=\"$temptempkey\"></A>";
+       } else {
+          $pedigreestring .= " <A HREF=\"#$temptempkey\">(Person is repeated. Click for first appearance.)</A>";
+       }
+       $pedigreestring .= "\n";
     }
-    $pedigreestring .=  " b. $birth" if ($birth ne '');
-	$pedigreestring .=  " m. $marr"  if ($marr ne '');
-    $pedigreestring .=  " d. $death" if ($death ne '');
+    $mytempString = "" . $mytemp;
+    switch (length($mytempString)) {
+      case 1 {$levelspaces = ""; }
+      case 2 {$levelspaces = " "; }
+      case 3 {$levelspaces = "  "; }
+    }
+    
+    if ($birth ne '') {
+      if ($level != 0) { $pedigreestring .=  '     '; }
+      &PedIndent($parities,$level);
+      if ($top) {
+          $pedigreestring .=  '|';
+      } else {
+          $pedigreestring .=  ' ';
+      }
+      if ((IfExists($family,'WIFE') == 0) && (IfExists($family,'HUSB') == 0)) {
+        $tempspaces = "      " ;
+      } elsif (IfExists($family,'WIFE') == 1) {
+        if ($level != 0) {
+          $tempspaces = "       <div id='DivID" . $line_num . "a'>|</div><div id='DivID" . $line_num . "b' style='display: none;'> </div> ";
+        } else {
+          $tempspaces = "    <div id='DivID" . $line_num . "a'>|</div><div id='DivID" . $line_num . "b' style='display: none;'> </div> ";
+        }
+      } else {
+        $tempspaces = "         ";
+      }
+      $tempspaces .= $levelspaces;
+      $pedigreestring .= $tempspaces . "<B>b.</B> $birth \n";
+    }
+    if ($marr ne '') {
+      if ($level != 0) { $pedigreestring .=  '     '; }
+      &PedIndent($parities,$level);
+      if ($top) {
+          $pedigreestring .=  '|';
+      } else {
+          $pedigreestring .=  ' ';
+      }
+      if ((IfExists($family,'WIFE') == 0) && (IfExists($family,'HUSB') == 0)) {
+        $tempspaces = "      " ;
+      } elsif (IfExists($family,'WIFE') == 1) {
+        if ($level != 0) {
+          $tempspaces = "       <div id='DivID" . $line_num . "c'>|</div><div id='DivID" . $line_num . "d' style='display: none;'> </div> ";
+        } else {
+          $tempspaces = "    <div id='DivID" . $line_num . "c'>|</div><div id='DivID" . $line_num . "d' style='display: none;'> </div> ";
+        }
+      } else {
+        $tempspaces = "         ";
+      }
+      $tempspaces .= $levelspaces;
+      $pedigreestring .= $tempspaces . "<B>m.</B> $marr \n";
+    }
+    if ($death ne '') {
+      if ($level != 0) { $pedigreestring .=  '     '; }
+      &PedIndent($parities,$level);
+      if ($top) {
+        $pedigreestring .=  '|';
+      } else {
+        $pedigreestring .=  ' ';
+      }
+      if ((IfExists($family,'WIFE') == 0) && (IfExists($family,'HUSB') == 0)) {
+        $tempspaces = "      " ;
+      } elsif (IfExists($family,'WIFE') == 1) {
+        if ($level != 0) {
+          $tempspaces = "       <div id='DivID" . $line_num . "e'>|</div><div id='DivID" . $line_num . "f' style='display: none;'> </div> ";
+        } else {
+          $tempspaces = "    <div id='DivID" . $line_num . "e'>|</div><div id='DivID" . $line_num . "f' style='display: none;'> </div> ";
+        }
+      } else {
+        $tempspaces = "         ";
+      }
+      $tempspaces .= $levelspaces;
+      $pedigreestring .= $tempspaces . "<B>d.</B> $death \n";
+    }
     # print "$key";
-    if (@appeared_or_not[$tempkey] == 0){
-       $pedigreestring .= "<A NAME=\"$temptempkey\"></A>";
-    } else {
-       $pedigreestring .= " <A HREF=\"#$temptempkey\">(Person is repeated. Click for first appearance.)</A>";
-    }
-
+ 
     # print " <A HREF=$WebCGIDir/$PedScript/n=$DB?$key>=></A>" if (($family) && ($level==$maxlevel));
     $mylinenumber = $line_num;
     $line_num++;
-    $pedigreestring .=  "\n</div><div id='DivID" . $line_num . "'>";
+    $pedigreestring .=  "</div><div id='DivID" . $line_num . "'>";
   }
 
   if(@appeared_or_not[$tempkey] == 0) {
@@ -341,6 +428,26 @@ sub Doindividual {
   return $mylinenumber;
 }
 
+
+sub IfExists {
+  local ($family2,$findtag2)=@_;
+  local ($key2)='';
+  $key2=$idx{$family2};
+  $next2 = '';
+  seek(GEDCOM,$key2,0) || die "Cannot seek to $key2";
+  <GEDCOM>;
+  while (<GEDCOM>) {
+    &IGMGetLine;
+    last if ($lvl eq '0');
+    if ($tag eq $findtag2) {
+      ($next2)=($rest=~/@(\w+)@/o);
+      next;
+    }
+  }
+  if ($next2) { return 1; }
+  else { return 0; }
+}
+
 sub Dofamily {
   #  local($parities) = Math::BigInt->new();
   local ($family,$findtag,$parities,$top)=@_;
@@ -355,14 +462,14 @@ sub Dofamily {
   while (<GEDCOM>) {
     &IGMGetLine;
     last if ($lvl eq '0');
-	if ($lvl eq '1'){ $type = $tag;}
+    if ($lvl eq '1'){ $type = $tag;}
     if ($tag eq $findtag) {
       ($next)=($rest=~/@(\w+)@/o);
       #unless($Pedfull){
       #   $ancestor_line = &Doindividual($next,$parities);
       #}
       #last;
-	  next;
+      next;
     }
 	if ($tag eq 'DATE') {
 	  # print "In date $rest $type";
