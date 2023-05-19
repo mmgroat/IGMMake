@@ -158,10 +158,16 @@ sub IGMHTMLHeader {
 
 sub IGMHeader {
   ($Title)=@_;
+<<<<<<< HEAD
   # &IGMEmail;
   print "<HTML>\n<HEAD>\n";
   print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n";
   print "<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+=======
+  &IGMEmail;
+  print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+#  print "<meta charset=\"utf-8\">\n"
+>>>>>>> b6576651ab298f626aa8057e89dfb16411c77bbe
   print "</HEAD>\n<BODY ";
   print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
   print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
