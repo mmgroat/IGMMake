@@ -28,17 +28,18 @@ sub IGMConvert {
   $var =~ s/</&lt;/go;
   $var =~ s/"/&quot;/go;
   $var =~ s/>/&gt;/go;
-  $var =~ s/Ñ/&auml;/go;
-  $var =~ s/î/&ouml;/go;
-  $var =~ s/Å/&uuml;/go;
-  $var =~ s/ò/&yuml;/go;
-  $var =~ s/·/&szlig;/go;
-  $var =~ s/é/&Auml;/go;
-  $var =~ s/ö/&Uuml;/go;
-  $var =~ s/Ç/&eacute;/go;
-  $var =~ s/ä/&egrave;/go;
-  $var =~ s/£/&uacute;/go;
-  $var =~ s/á/&ccedil;/go;
+ # Taken care of by "user utf8";
+ # $var =~ s/Ñ/&auml;/go;
+ # $var =~ s/î/&ouml;/go;
+ # $var =~ s/Å/&uuml;/go;
+ # $var =~ s/ò/&yuml;/go;
+ # $var =~ s/·/&szlig;/go;
+ # $var =~ s/é/&Auml;/go;
+ # $var =~ s/ö/&Uuml;/go;
+ # $var =~ s/Ç/&eacute;/go;
+ # $var =~ s/ä/&egrave;/go;
+ # $var =~ s/£/&uacute;/go;
+ # $var =~ s/á/&ccedil;/go;
 
  #Remove TMG style index entries from memo fields
   $var =~ s/ÆÆ.*ØØ//go;
@@ -106,7 +107,7 @@ sub IGMEmail {
 }
 
 sub IGMEnd {
-  &IGMEmail;
+  # &IGMEmail;
   print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A>\n";
   print "<HR>Created by $Program Version $Version ($HowTo)<BR>\n";
   print "Copyright 1996 &copy; ";
@@ -116,7 +117,7 @@ sub IGMEnd {
 }
 
 sub IGMRKW {
-  &IGMEmail;
+  # &IGMEmail;
   print "<hr><em>Please send corrections, additions or comments to </em><A HREF=\"mailto:mgroat\@cs.unm.edu\">Michael M. Groat</A>\n";
   print "<HR>Created by $Program Version $Version ($HowTo)<BR>\n";
   print "Copyright 1996 &copy; ";
@@ -142,8 +143,10 @@ sub IGMGetLine {
 
 sub IGMHTMLHeader {
   ($Title)=@_;
-  $IGMEmail;
-  print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+  # $IGMEmail;
+  print "<HTML>\n<HEAD>\n";
+  print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n";
+  print "<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
   print "</HEAD>\n<BODY ";
   print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
   print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
@@ -155,8 +158,10 @@ sub IGMHTMLHeader {
 
 sub IGMHeader {
   ($Title)=@_;
-  &IGMEmail;
-  print "<HTML>\n<HEAD>\n<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
+  # &IGMEmail;
+  print "<HTML>\n<HEAD>\n";
+  print "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n";
+  print "<TITLE>Michael M. Groat's Genealogical Database $Title</TITLE>\n";
   print "</HEAD>\n<BODY ";
   print "BACKGROUND=\"$WebSite/$WebIGMDir/$Back\"" if ($Back ne '');
   print "BGCOLOR=$BGColor TEXT=$Text LINK=$Link VLINK=$VLink>\n";
@@ -170,8 +175,8 @@ sub IGMLog {
   ( $text )=@_;
   if ($text !~ /Googlebot|accelobot|msnbot/){
      $Updated=&wtime(time);
-     $lf="/nfs/notrust/cgi-bin/mgroat/igmlog.html";
-     open(LOG,"+< $lf") || &IGMDie("Error opening log file");
+     $lf='C:\inetpub\wwwroot\Genealogy\GroatFamily\igmlog.html';
+     open(LOG,"+< $lf") || &IGMDie("Error opening log file $lf");
      flock(LOG,2);
      @stuff=<LOG>;
      splice(@stuff,12,1) if ($#stuff>1000);
@@ -198,7 +203,7 @@ sub IGMLog {
 }
 
 sub HTMLStart {
-  print "Content-type: text/html\n\n";
+  print "Content-type: text/html; charset=utf-8\n\n";
 }
 
 sub LoadVars {
