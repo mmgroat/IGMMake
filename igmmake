@@ -32,10 +32,7 @@ BEGIN {
 #$| = 1;
 
 
-<<<<<<< HEAD
 use utf8;
-=======
->>>>>>> b6576651ab298f626aa8057e89dfb16411c77bbe
 #use Cwd qw( abs_path );
 #use File::Basename qw( dirname );
 #use lib dirname(abs_path($0));
