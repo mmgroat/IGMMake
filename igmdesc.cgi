@@ -7,6 +7,10 @@
 # Version 1.2
 #
 #############################################################################
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
 sub trim($);
 $Program = 'IGMDesc';
 $Version = '1.2';
@@ -31,7 +35,7 @@ $focus=$key;
 if ($UseDBM) {
   dbmopen(%idx,"$LocIGMDir/$DB/$DB",undef);
 } else {
-  open(INDEX,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.idx") || &IGMDie("Can't open index");
+  open(INDEX,$LocINDEX) || &IGMDie("Can't open index");
   while (<INDEX>) {
     /^(\S+) (.*)/;
     $idx{$1}=$2;
@@ -43,7 +47,7 @@ if ($UseDBM) {
 #
 $key=$idx{$key} if ($UseXrefTags);
 $lastlvl = 100;
-open(GEDCOM,"/nfs/notrust/cgi-bin/mgroat/GroatFamily.ged") || &IGMDie("Can't open GEDCOM");
+open(GEDCOM,$LocGEDCOM) || &IGMDie("Can't open GEDCOM");
 seek(GEDCOM,$key,0);
 #
 # Read INDI line and get tag for comparison later
