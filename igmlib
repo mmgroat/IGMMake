@@ -31,7 +31,7 @@ sub IGMConvert {
  # Taken care of by "use utf8";
  # $var =~ s/Ñ/&auml;/go;
  # $var =~ s/î/&ouml;/go;
- # $var =~ s/Å/&uuml;/go;
+ # $var =~ s/ù/&uuml;/go;
  # $var =~ s/ò/&yuml;/go;
  # $var =~ s/·/&szlig;/go;
  # $var =~ s/é/&Auml;/go;
@@ -175,8 +175,7 @@ sub IGMLog {
   ( $text )=@_;
   if ($text !~ /Googlebot|accelobot|msnbot/){
      $Updated=&wtime(time);
-     $lf='C:\inetpub\wwwroot\Genealogy\GroatFamily\igmlog.html';
-     open(LOG,"+< $lf") || &IGMDie("Error opening log file $lf");
+     open(LOG,"+< $LocLOG") || &IGMDie("Error opening log file for write $LocLOG");
      flock(LOG,2);
      @stuff=<LOG>;
      splice(@stuff,12,1) if ($#stuff>1000);
@@ -190,7 +189,7 @@ sub IGMLog {
 #
 # Update total count of accesses
 #
-     open(LOG,"+< /nfs/notrust/cgi-bin/mgroat/GroatFamily.cnt") || &IGMDie("Error opening access counter");
+     open(LOG,"+< $LocCNT") || &IGMDie("Error opening access counter for write $LocCNT");
      flock(LOG,2);
      $Count=<LOG>;
      $Count++;
@@ -266,7 +265,7 @@ sub escape
 #This is needed to tell PERL that all is well
 sub counter
 {
-    open(DAT,"GroatFamily.cnt") || die "Problem opening counter file: $!";
+    open(DAT,$LocCNT) || die "Problem opening counter file: $!";
     my $count = <DAT>;
     print "<hr><CENTER>You are Visitor Number <h2>$count</h2> since Novermber 30, 2007 </CENTER>";
 }

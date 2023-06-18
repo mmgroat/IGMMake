@@ -41,8 +41,17 @@
   #WebCGIDir   = Your CGI directory
   $WebCGIDir   = 'http://10.0.0.2/Genealogy';
 
+  #WebLOG   = Your Web location for the log file
+  $WebLOG   = '/Genealogy/GroatFamily/igmlog.html';
+
   #LocINDEX   = Your GedCom index file
   $LocINDEX   = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.idx';
+
+  #LocCNT     = Your DataCount file
+  $LocCNT     = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.cnt';
+
+  #LocLOG     = Your DataCount file
+  $LocLOG     = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\igmlog.html';
 
   #LocGEDCOM  = Your GedCom file
   $LocGEDCOM  = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.ged';

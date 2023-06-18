@@ -438,7 +438,7 @@ sub heading {
     }
   }
 
-  print "<LI><A HREF=\"http://cgibin.cs.unm.edu/mgroat-bin/igmlog.html\">Look at the $DB Database Access Log</A>\n";
+  print "<LI><A HREF=\"$WebLOG\">Look at the $DB Database Access Log</A>\n";
 
 #  print "<BR><BR>\n";
 
