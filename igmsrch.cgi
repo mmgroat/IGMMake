@@ -8,13 +8,20 @@
 # Version 1.0
 #
 #############################################################################
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+sub trim($);
+$starttime=(times)[0];
 $Program='IGMSrch';
 $Version='1.0';
 require 'igmini';
 require 'igmlib';
 &LoadVars;
 $tmp=$ENV{'PATH_INFO'};
-($DB)=($tmp=~m#^/n=(.*)#);
+#($DB)=($tmp=~m#^/n=(.*)#);
+$DB='GroatFamily';
 if (!($FORM{'terms'})) {
   &HTMLStart;
   &IGMHeader( 'Search Engine' );
@@ -73,7 +80,7 @@ if (!($FORM{'terms'})) {
   $FindThis.='</B>';
   print "$FindThis";
   print "</B><P>The search will be case $FORM{'case'}.\n";
-  open(GEDCOM,"/nfs/notrust/cgi-bin/mgroat/$DB.gdx") || &IGMDie( "Error opening $Pf." );
+  open(GEDCOM,$LocGDX) || &IGMDie( "Error opening $LocGDX" );
   $MatchCount=0;
   $MatchCount=&Srch(@terms);
   close (GEDCOM);

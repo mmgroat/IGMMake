@@ -47,6 +47,9 @@
   #LocINDEX   = Your GedCom index file
   $LocINDEX   = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.idx';
 
+  #LocGDX     = Your GedCom gdx index file
+  $LocGDX     = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.gdx';
+
   #LocCNT     = Your DataCount file
   $LocCNT     = 'C:\inetpub\wwwroot\Genealogy\GroatFamily\GroatFamily.cnt';
 
