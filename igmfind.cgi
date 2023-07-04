@@ -38,6 +38,12 @@
 #              Correctly handle special characters in terms
 #              Search not working for BB & SL
 #############################################################################
+
+use Cwd qw( abs_path );
+use File::Basename qw( dirname );
+use lib dirname(abs_path($0));
+sub trim($);
+$starttime=(times)[0];
 $Program = 'IGMFind';
 $Version='2.3';
 require 'igmini';

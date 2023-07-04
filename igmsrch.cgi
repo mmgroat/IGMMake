@@ -44,7 +44,6 @@ if (!($FORM{'terms'})) {
   &IGMRKW;
   exit 0;
 } else {
-  $starttime=(times)[0];
   &HTMLStart;
   $DB=$FORM{'Database'};
   $DB='GroatFamily';
@@ -96,9 +95,10 @@ if (!($FORM{'terms'})) {
   }
   print "<A HREF=\"$WebSite/$WebIGMDir/$DB/$DB.html\">Return to the master $NewTitle index.</A><BR>\n";
   print "<A HREF=\"$SrchScript/n=$DB\">Perform another search.</A><BR><P>\n";
-  &IGMRKW;
   $time=(times)[0]-$starttime;
+  print "<BR>Database searched for name $FindThis by $ENV{\"REMOTE_HOST\"} using $time<BR>";
   &IGMLog("Database searched for name $FindThis by $ENV{\"REMOTE_HOST\"} using $time");
+  &IGMRKW;
 }
 #
 # Subroutine to do the actual searching
