@@ -176,8 +176,8 @@ if ($AllowGED) {
 #&counter;
 &IGMRKW;
 dbmclose(%idx) if ($UseDBM);
-#$time=(times)[0]-$starttime;
-#&IGMLog("Pedigree $Savename accessed by $ENV{\"REMOTE_ADDR\"} $ENV{\"HTTP_USER_AGENT\"} using $time");
+$time=(times)[0]-$starttime;
+&IGMLog("Pedigree $Savename accessed by $ENV{\"REMOTE_ADDR\"} $ENV{\"HTTP_USER_AGENT\"} using $time");
 
 #
 # recursive subroutine to do individual
